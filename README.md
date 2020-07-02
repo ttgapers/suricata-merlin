@@ -19,10 +19,18 @@ Usage:    suricata_manager    ['help'|'-h'] | [ 'debug' ]
 [ 'install' | 'uninstall' | 'check' | 'stop' | 'start' | 'logs' | 'config[x]' | 'test' ]
 
 suricata_manager config: View the suricata.yml file
+
 suricata_manager configx: Edit the suricata.yml file
+
 suricata_manager check: Syntax check the suricata.yml file
+
 suricata_manager test: Generate a spoof HTTPS attack (To see it you will need to enable the http.log) uid=0(root) gid=0(root) groups=0(root)
+
 suricata_manager logs: View the default three logs for activity
+
 	/opt/var/log/suricata/fast.log
+
 	/opt/var/log/suricata/stats.log
+
 	/opt/var/log/suricata/eve-2020-05-09-15:38.json
+	
