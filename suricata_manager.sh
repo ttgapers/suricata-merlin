@@ -1,8 +1,8 @@
 #!/bin/sh
 # suricata-manager - Suricata port for Merlin firmware supported routers
 # Site: https://github.com/ttgapers/suricata-merlin
-# Thread: https://www.snbforums.com/threads/release-surcata-merlin/
-# Credits: rgnldo, Martineau, ttgapers, lonelycoder, Adamm, Jack Yaz
+# Thread: hhttps://www.snbforums.com/threads/suricata-ids-ips-on-asuswrt-merlin.63280/
+# Credits: rgnldo, Martineau, ttgapers, Adamm
 
 # shellcheck disable=SC2086,SC2068,SC2039,SC2242,SC2027,SC2155,SC2046
 # shellcheck disable=SC2034  # Unused variables left for readability
