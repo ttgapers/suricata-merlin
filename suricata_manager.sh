@@ -6,6 +6,7 @@
 
 # shellcheck disable=SC2086,SC2068,SC2039,SC2242,SC2027,SC2155,SC2046
 # shellcheck disable=SC2034  # Unused variables left for readability
+# shellcheck disable=SC2143,SC2012,SC2015,SC2143,SC2236,SC2005,SC2181,SC2005 #all other info
 VER="v1.04"
 #======================================================================================================= © 2020 Martineau, v1.03
 #  Install 'suricata - Real-time Intrusion Detection System (IDS), Intrusion Prevention System (IPS) package from Entware on Asuswrt-Merlin firmware.
