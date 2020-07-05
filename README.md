@@ -1,7 +1,7 @@
 # suricata-merlin
 
 ## Pre-requisites
-1.  Currently only supports Asus HND-model routers running [Merlin firmware](https://github.com/RMerl/asuswrt-merlin.ng) - e.g. HND-models (4.x kernel) RT-AC86U,RT-AX88U or RT-AX56U,RT-AX58U
+1.  Currently only supports Asus routers running [Merlin firmware](https://github.com/RMerl/asuswrt-merlin.ng)
 2.	Asus QoS and AiProtection Trend Micro DISABLED
 3.  Entware
 4.  USB Storage

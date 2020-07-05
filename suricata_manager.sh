@@ -6,7 +6,7 @@
 
 # shellcheck disable=SC2086,SC2068,SC2039,SC2242,SC2027,SC2155,SC2046
 # shellcheck disable=SC2034  # Unused variables left for readability
-# shellcheck disable=SC2143,SC2012,SC2015,SC2143,SC2236,SC2005,SC2181,SC2005 #all other info
+
 VER="v1.04"
 #======================================================================================================= © 2020 Martineau, v1.03
 #  Install 'suricata - Real-time Intrusion Detection System (IDS), Intrusion Prevention System (IPS) package from Entware on Asuswrt-Merlin firmware.
@@ -128,11 +128,15 @@ Chk_Entware() {
 		done
 		return "$READY"
 }
+# shellcheck disable=2143
+# shellcheck disable=2015
 Is_HND() {
 	# Use the following at the command line otherwise 'return X' makes the SSH session terminate!
 	#[ -n "$(uname -m | grep "aarch64")" ] && echo Y || echo N
 	[ -n "$(uname -m | grep "aarch64")" ] && { echo Y; return 0; } || { echo N; return 1; }
 }
+# shellcheck disable=2143
+# shellcheck disable=2015 
 Is_AX() {
 	# Kernel is '4.1.52+' (i.e. isn't '2.6.36*') and it isn't HND
 	# Use the following at the command line otherwise 'return X' makes the SSH session terminate!
@@ -149,11 +153,14 @@ Get_WAN_IF_Name () {
 	local IF_NAME=$(nvram get wan0_ifname)				# DHCP/Static ?
 
 	# Usually this is probably valid for both eth0/ppp0e ?
-	if [ "$(nvram get wan0_gw_ifname)" != "$IF_NAME" ];then
+	if [ "$(nvram get wan0_gw_ifname)" != "$IF_NAME" ]; then
 		local IF_NAME=$(nvram get wan0_gw_ifname)
 	fi
 
-	if [ ! -z "$(nvram get wan0_pppoe_ifname)" ];then
+	# if [ ! -z "$(nvram get wan0_pppoe_ifname)" ];then
+	# 	local IF_NAME="$(nvram get wan0_pppoe_ifname)"		# PPPoE
+	# fi
+	if [ -n "$(nvram get wan0_pppoe_ifname)" ]; then
 		local IF_NAME="$(nvram get wan0_pppoe_ifname)"		# PPPoE
 	fi
 
@@ -233,6 +240,7 @@ ANSIColours
 
 [ ! -L "/opt/bin/suricata_manager" ] && Script_alias "create"
 
+# shellcheck disable=SC2005 # Useless echo
 FIRMWARE=$(echo $(nvram get buildno) | awk 'BEGIN { FS = "." } {printf("%03d%02d",$1,$2)}')
 HARDWARE_MODEL=$(Get_Router_Model)
 
@@ -265,6 +273,7 @@ case "$1" in
 		ACTION="Install"
 
 		Check_GUI_NVRAM "install"
+		# shellcheck disable=2181
 		if [ $? -gt 0 ];then
 			echo -e $cRESET"\n\tThe router does not currently meet ALL of the recommended pre-reqs as shown above."
 			echo -e "\tHowever, whilst they are recommended, you may proceed with the suricata ${cBGRE}${ACTION}$cRESET"
@@ -296,6 +305,7 @@ case "$1" in
 		sed -i "/HOME_NET:/ s/[^ ]*[^ ]/\\\"$LAN_CIDR\\\"/2" $FN
 
 		#    DNS_SERVERS: "[192.168.1.1]"
+		# shellcheck disable=2005
 		DNS_IP=$(echo "$(nvram get wan0_dns)" | awk '{print $1}')		# Beware wan0_dns will usually be two IP's
 		#[ -n "$(pidof unbound)" ] && DNS=$(nvram get lan_ipadd_rt)
 		DNS_IP="127.0.0.1"
@@ -339,7 +349,8 @@ EOF
 			echo -e "#!/bin/sh\n" > /jffs/scripts/services-start
 			chmod +x /jffs/scripts/services-start
 		fi
-		[ -z "$(grep "suricata" /jffs/scripts/services-start)" ] && echo -e "cru a suricata_updte \"0 3 * * * $FN\"" >> /jffs/scripts/services-start
+		# shellcheck disable=2143
+		[ -z "$(grep "suricata" /jffs/scripts/services-start)" ] && echo -e "cru a suricata_update \"0 3 * * * $FN\"" >> /jffs/scripts/services-start
 		cru a suricata_updte "0 3 * * * $FN"
 
 		# Perform a test compile of the config
@@ -355,6 +366,7 @@ EOF
 		;;
 	logs)
 	    echo -e $cBMAG"\tLog watch\t\t${cBGRE}Press CTRL-C to stop\n"$cRESET
+		# shellcheck disable=2012
 	    EVELOG=$(ls -lah /opt/var/log/suricata/eve-* | tail -n 1 | awk '{print $NF}')
 		tail -f /opt/var/log/suricata/fast.log /opt/var/log/suricata/stats.log $EVELOG # recommended
 		;;
@@ -377,8 +389,10 @@ EOF
 		;;
 	uninstall|remove)
 		[ -f /opt/etc/init.d/S82suricata ] && /opt/etc/init.d/S82suricata stop
-		[ -n "$(opkg list-installed | grep suricata)" ] && opkg --force-remove --force-depends remove suricata
+		# [ -n "$(opkg list-installed | grep suricata)" ] && opkg --force-remove --force-depends remove suricata
+		opkg --autoremove remove suricata
 		cru d suricata_updte
+		cru d suricata_update
 		sed -i '/suricata/d' /jffs/scripts/services-start
 		Script_alias
 		rm -rf /opt/var/lib/suricata 2>/dev/null
