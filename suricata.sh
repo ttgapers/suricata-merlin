@@ -5,23 +5,9 @@
 # Credits: rgnldo, Martineau, ttgapers, Adamm
 
 #########################################################
-<<<<<<< HEAD
 ##                                                     ##
 ##      https://github.com/ttgapers/suricata-merlin    ##
 ##                        v1.4.1                       ##
-=======
-##               _                                     ##
-##              | |                                    ##
-##    ___  __ _ | | __ ___          __ _   ___   ___   ##
-##   / __|/ _` || |/ // _ \ ______ / _` | / _ \ / __|  ##
-##  | (__ |(_| ||   <|  __/|______| (_| || (_) |\__ \  ##
-##   \___|\__,_||_|\_\\___|        \__, | \___/ |___/  ##
-##                                    | |              ##
-##                                    |_|              ##
-##                                                     ##
-##      https://github.com/ttgapers/suricata-merlin    ##
-##                        v1.4.0                       ##
->>>>>>> 73706400ddd1ef163159df29841799a8c895e71d
 ##                                                     ##
 #########################################################
 
@@ -32,11 +18,7 @@ sed -n '6,21p' "$0"
 
 readonly SCRIPT_NAME="suricata"
 readonly SCRIPT_NAME_FANCY="Suricata-Merlin"
-<<<<<<< HEAD
 readonly SCRIPT_BRANCH="develop"
-=======
-readonly SCRIPT_BRANCH="master"
->>>>>>> 73706400ddd1ef163159df29841799a8c895e71d
 readonly SCRIPT_DIR="/jffs/addons/${SCRIPT_NAME}"
 readonly SCRIPT_CFG="${SCRIPT_DIR}/${SCRIPT_NAME}.cfg"
 readonly SCRIPT_REMOTEDIR="https://raw.githubusercontent.com/ttgapers/suricata-merlin/${SCRIPT_BRANCH}"
