@@ -5,6 +5,11 @@
 # Credits: rgnldo, Martineau, ttgapers, Adamm
 
 #########################################################
+<<<<<<< HEAD
+##                                                     ##
+##      https://github.com/ttgapers/suricata-merlin    ##
+##                        v1.4.1                       ##
+=======
 ##               _                                     ##
 ##              | |                                    ##
 ##    ___  __ _ | | __ ___          __ _   ___   ___   ##
@@ -16,6 +21,7 @@
 ##                                                     ##
 ##      https://github.com/ttgapers/suricata-merlin    ##
 ##                        v1.4.0                       ##
+>>>>>>> 73706400ddd1ef163159df29841799a8c895e71d
 ##                                                     ##
 #########################################################
 
@@ -26,7 +32,11 @@ sed -n '6,21p' "$0"
 
 readonly SCRIPT_NAME="suricata"
 readonly SCRIPT_NAME_FANCY="Suricata-Merlin"
+<<<<<<< HEAD
+readonly SCRIPT_BRANCH="develop"
+=======
 readonly SCRIPT_BRANCH="master"
+>>>>>>> 73706400ddd1ef163159df29841799a8c895e71d
 readonly SCRIPT_DIR="/jffs/addons/${SCRIPT_NAME}"
 readonly SCRIPT_CFG="${SCRIPT_DIR}/${SCRIPT_NAME}.cfg"
 readonly SCRIPT_REMOTEDIR="https://raw.githubusercontent.com/ttgapers/suricata-merlin/${SCRIPT_BRANCH}"
@@ -168,6 +178,112 @@ Suricata_Bin_Download(){
 		Print_Output "false" "Unable to download manifest" "$ERR"
 	fi
 }
+
+
+
+# @Martineau code migration
+# shellcheck disable=SC2034,SC2039,SC2155
+Suricata_Get_WAN_IF_Name () {
+
+	# echo $([ -n "$(nvram get wan0_pppoe_ifname)" ] && echo $(nvram get wan0_pppoe_ifname) || echo $(nvram get wan0_ifname))
+	#	nvram get wan0_gw_ifname
+	#	nvram get wan0_proto
+
+	local IF_NAME=$(nvram get wan0_ifname)				# DHCP/Static ?
+
+	# Usually this is probably valid for both eth0/ppp0e ?
+	if [ "$(nvram get wan0_gw_ifname)" != "$IF_NAME" ]; then
+		local IF_NAME=$(nvram get wan0_gw_ifname)
+	fi
+
+	# if [ ! -z "$(nvram get wan0_pppoe_ifname)" ];then
+	# 	local IF_NAME="$(nvram get wan0_pppoe_ifname)"		# PPPoE
+	# fi
+	if [ -n "$(nvram get wan0_pppoe_ifname)" ]; then
+		local IF_NAME="$(nvram get wan0_pppoe_ifname)"		# PPPoE
+	fi
+
+	echo $IF_NAME
+
+}
+
+# shellcheck disable=SC2034,SC2039,SC2155
+Suricata_Script_alias() {
+
+        if [ "$1" == "create" ];then
+            # Create alias 'suricata_manager' for '/jffs/addons/unbound/suricata_manager.sh'  # v1.22
+            rm -rf "/opt/bin/suricata_manager" 2>/dev/null                                   # v2.01
+            if [ -d "/opt/bin" ] && [ ! -L "/opt/bin/suricata_manager" ]; then
+                echo -e $cBGRE"Creating 'suricata_manager' alias" 2>&1
+                ln -s /jffs/addons/suricata/suricata.sh /opt/bin/suricata_manager    # v2.00 v1.04
+            fi
+        else
+            # Remove Script alias - why?
+            echo -e $cBCYA"Removing 'suricata_manager' alias" 2>&1
+            rm -rf "/opt/bin/suricata_manager" 2>/dev/null
+        fi
+}
+
+# shellcheck disable=SC2034,SC2039,SC2154
+Suricata_Check_GUI_NVRAM() {
+
+		local ERROR_CNT=0
+		local ENABLED_OPTIONS=" "
+
+		if [ "$1" == "active" ];then
+			STATUSONLY="StatusOnly"
+		else
+			echo -e $cBCYA"\n\tRouter Configuration recommended pre-reqs status:\n" 2>&1
+
+			if [ "$(Is_HND)" == "N" ] && [ "$(Is_AX)" == "N" ];then
+				echo -e $cBRED"\a\t[✖] Warning ${cRESET}Router $HARDWARE_MODEL$cBRED isn't fully supported ${cBGRE}(Only HND-models RT-AC86U,RT-AX88U or RT-AX56U,RT-AX58U)"$cRESET
+				ERROR_CNT=$((ERROR_CNT + 1))
+			fi
+
+			# Check GUI 'TrendMicro'
+			[ "$(nvram get TM_EULA)" == "1" ] && { echo -e $cBRED"\a\t[✖] ***ERROR TrendMicro ENABLED $cRESET \t\t\t\tsee $HTTP_TYPE://$(nvram get lan_ipaddr):$HTTP_PORT/Advanced_Privacy.asp ->Administration Privacy"$cRESET 2>&1; ERROR_CNT=$((ERROR_CNT + 1)); } || echo -e $cBGRE"\t[✔] TrendMicro DISABLED" 2>&1
+
+			# QoS
+			[ "$(nvram get qos_enable)" == "1" ] && { echo -e $cBRED"\a\t[✖] ***ERROR QoS ENABLED $cRESET \t\t\t\t\tsee $HTTP_TYPE://$(nvram get lan_ipaddr):$HTTP_PORT/QoS_EZQoS.asp ->QoS - QoS to configuration"$cRESET 2>&1; ERROR_CNT=$((ERROR_CNT + 1)); } || echo -e $cBGRE"\t[✔] QoS DISABLED" 2>&1
+
+			# Check Skynet
+			[ -f /jffs/scripts/firewall ] && echo -e $cBRED"\a\t[✖] ***Warning Skynet installed" || echo -e $cBGRE"\t[✔] Skynet not Installed" 2>&1
+
+			echo -e $cBCYA"\n\tOptions:${TXT}$DESC\n" 2>&1
+
+		fi
+
+		if [ -f /opt/etc/suricata/suricata.yaml ];then
+			:
+		fi
+
+		local TXT=
+		unset $TXT
+		#echo -e $cRESET 2>&1
+
+		if [ -z "$STATUSONLY" ];then
+			[ $ERROR_CNT -ne 0 ] && { return 1; } || return 0
+		else
+			return 0
+		fi
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Suricata_Start(){
 	if [ -z "$dlspeed" ]; then
