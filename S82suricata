@@ -1,0 +1,16 @@
+#!/bin/sh
+logger -t S82suricata "Starting Suricata IDS/IPS $0"
+# set environment PATH to system binaries
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin:$PATH
+export TZ=$(cat /etc/TZ)
+ENABLED=yes
+PROCS=suricata
+PIDFILE=/opt/var/run/suricata.pid
+ARGS="-c /opt/etc/suricata/suricata.yaml --af-packet -D"
+#ARGS="-c /opt/etc/suricata/suricata.yaml --pcap"
+POSTCMD="sleep 1"
+PREARGS=""
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/opt/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /opt/etc/init.d/rc.func
