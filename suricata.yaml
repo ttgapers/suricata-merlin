@@ -45,24 +45,26 @@ af-packet:
 #    threads: 1
 #    defrag: no
 #    cluster-type: cluster_flow
-#    cluster-id: 98
+#    cluster-id: 99
 #    copy-mode: ips
 #    copy-iface: br0
-#    buffer-size: 64535
-    use-mmap: yes
-    tpacket-v3: yes
+#    buffer-size: 3072 
+#    use-mmap: yes
+#    tpacket-v2: yes
 #    tpacket-v3: no
+#    ring-size: 3072
   - interface: br0
 #    threads: 1
-#    cluster-id: 97
+#    cluster-id: 98
 #    defrag: no
 #    cluster-type: cluster_flow
 #    copy-mode: ips
 #    copy-iface: eth0
-#    buffer-size: 64535
-    use-mmap: yes
-    tpacket-v3: yes
+#    buffer-size: 3072
+#    use-mmap: yes
+#    tpacket-v2: yes
 #    tpacket-v3: no
+#    ring-size: 3072
 #  - interface: wl0.2
 
 # IPS Mode Configuration
@@ -141,7 +143,7 @@ outputs:
       append: no
 
   - syslog:
-      enabled: yes
+      enabled: no
       identity: suricata
       facility: local1
       level: notice
