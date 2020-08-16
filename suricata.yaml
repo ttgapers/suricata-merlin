@@ -6,9 +6,9 @@ vars:
 
   # Holds the address group vars that would be passed in a Signature.
   address-groups:
-    HOME_NET: "[192.168.0.0/16]"
+    HOME_NET: "[HOME_NET/16]"
     EXTERNAL_NET: "any"
-    DNS_SERVERS: "[192.168.2.1]"
+    DNS_SERVERS: "[DNS_IP]"
     SMTP_SERVERS: "$HOME_NET"
     HTTP_SERVERS: "$HOME_NET"
     SQL_SERVERS: "$HOME_NET"
@@ -343,7 +343,7 @@ logging:
       enabled: no
       filename: /opt/var/log/suricata/suricata.log
   - syslog:
-      enabled: yes 
+      enabled: no 
       facility: off
       
 legacy:
