@@ -184,12 +184,12 @@ Auto_Cron(){
 			STARTUPLINECOUNT=$(cru l | grep -c "$SCRIPT_NAME")
 			
 			if [ "$STARTUPLINECOUNT" -eq 0 ]; then
-				cru a "$SCRIPT_NAME" "13 * * * * $SCRIPT_DIR/$SCRIPT_NAME_LOWER generate"
+				cru a "$SCRIPT_NAME" "14 * * * * $SCRIPT_DIR/$SCRIPT_NAME_LOWER generate"
 			fi
 			STARTUPLINECOUNT=$(cru l | grep -c "$LOGSCRIPT_NAME")
 			
 			if [ "$STARTUPLINECOUNT" -eq 0 ]; then
-				cru a "$LOGSCRIPT_NAME" "14 * * * * $SCRIPT_DIR/$LOGSCRIPT_NAME_LOWER"
+				cru a "$LOGSCRIPT_NAME" "13 * * * * $SCRIPT_DIR/$LOGSCRIPT_NAME_LOWER"
 			fi
 		;;
 		delete)
