@@ -88,7 +88,7 @@ max-pending-packets: 1024
 default-log-dir: /opt/var/log/suricata
 
 stats:
-  enabled: yes
+  enabled: no
   # The interval field (in seconds) controls at what interval
   # the loggers are invoked.
   interval: 8
@@ -137,7 +137,7 @@ outputs:
       certs-log-dir: certs
 
   - stats:
-      enabled: no 
+      enabled: yes 
       filename: stats.log
       interval: 10
       append: no
