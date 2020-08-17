@@ -302,7 +302,7 @@ case "$1" in
 		cru a Suricata_Update.sh "0 3 * * * /jffs/addons/suricata/suricata_update.sh"		
 		
 		# Download stats processing
-		curl --progress-bar -o /jffs/addons/suricata/suricata_log.sh $(echo $GITHUB"suricata_log.s")
+		curl --progress-bar -o /jffs/addons/suricata/suricata_log.sh $(echo $GITHUB"suricata_log.sh")
 		chmod +x /jffs/addons/suricata/suricata_log.sh
 		curl --progress-bar -o /jffs/addons/suricata/suricata_stats.sh $(echo $GITHUB"suricata_stats.sh")
 		chmod +x /jffs/addons/suricata/suricata_stats.sh
