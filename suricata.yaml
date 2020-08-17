@@ -346,9 +346,6 @@ logging:
       enabled: no 
       facility: off
       
-legacy:
-  uricontent: enabled
-
 default-rule-path: /opt/var/lib/suricata/rules
 
 rule-files:

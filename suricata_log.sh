@@ -10,7 +10,7 @@
 #
 ## @juched - Process logs into SQLite3 for stats generation
 ##suricata_log.sh
-## - v1.0 - March 24 2020 - Initial version
+## - v1.0 - Aug 8 2020 - Initial version
 readonly SCRIPT_VERSION="v1.0"
 
 Say(){
@@ -63,11 +63,6 @@ if [ -f "$suricata_logfile" ]; then # only if log exists
   echo "BEGIN;" > $tmpSQL
   cat $suricata_logfile | awk -v vardate="$dateString" -v varthreatid="$n_threat_id" -v varthreatdesc="$n_threat_desc" -v varthreatclass="$n_threat_class" -v varthreatpriority="$n_threat_priority" -v varthreatconnect="$n_threat_connection" -v vartheatconnection_src="$n_threat_connection_src" -v varthreatconnection_dst="$n_threat_connection_dst" -F' \\[\\*\\*\\] |\\[|\\] ' '/\[\*\*\]/{split($varthreatconnect,a_conn,"\\{*\\} | -> |:");print "INSERT OR IGNORE INTO threat_log ([threat_id],[threat_desc],[threat_class],[threat_priority],[threat_src_ip],[threat_dst_ip],[date],[count]) VALUES (\x27" $varthreatid "\x27, \x27" $varthreatdesc "\x27, \x27" $varthreatclass "\x27, \x27" $varthreatpriority "\x27, \x27" a_conn[vartheatconnection_src] "\x27, \x27" a_conn[varthreatconnection_dst] "\x27, \x27" vardate "\x27, 0);\nUPDATE threat_log SET count = count + 1 WHERE threat_id = \x27" $varthreatid "\x27 AND threat_src_ip = \x27" a_conn[vartheatconnection_src] "\x27 AND threat_dst_ip = \x27" a_conn[varthreatconnection_dst] "\x27 AND date = \x27" vardate "\x27;"}' >> $tmpSQL
   echo "COMMIT;" >> $tmpSQL
-
-##cat fast.log | awk -F'\\[\\*\\*\\]|\\[|\\] ' '{print $3;print $4;print $6;print $8;split($9,a_conn,"\\{*\\} | -> |:");print a_conn[2];print a_conn[4]}'
-##cat fast.log | awk -F' \\[\\*\\*\\] |\\[|\\] ' '/\[\*\*\]/{split($9,a_conn,"\\{*\\} | -> |:");print "INSERT OR IGNORE INTO threat_log ([threat_id],[threat_desc],[threat_class],[threat_priority],[threat_src_ip],[threat_dst_ip],[date],[count]) VALUES (\x27" $3 "\x27, \x27" $4 "\x27, \x27" $6 "\x27, \x27" $8 "\x27, \x27" a_conn[2] "\x27, \x27" a_conn[4]"\x27, 0);"}'
-##cat fast.log | awk -F' \\[\\*\\*\\] |\\[|\\] ' '/\[\*\*\]/{split($9,a_conn,"\\{*\\} | -> |:");print "INSERT OR IGNORE INTO threat_log ([threat_id],[threat_desc],[threat_class],[threat_priority],[threat_src_ip],[threat_dst_ip],[date],[count]) VALUES (\x27" $3 "\x27, \x27" $4 "\x27, \x27" $6 "\x27, \x27" $8 "\x27, \x27" a_conn[2] "\x27, \x27" a_conn[4]"\x27, 0);\nUPDATE threat_log SET count = count + 1 WHERE threat_id = \x27" $3 "\x27 AND threat_src_ip = \x27" a_conn[2] "\x27 AND threat_dst_ip = \x27" a_conn[4] AND date = \x27" $1 "\x27;"}'
-##cat fast.log | awk -F' \\[\\*\\*\\] |\\[|\\] ' '/\[\*\*\]/{split($9,a_conn,"\\{*\\} | -> |:");print "INSERT OR IGNORE INTO threat_log ([threat_id],[threat_desc],[threat_class],[threat_priority],[threat_src_ip],[threat_dst_ip],[date],[count]) VALUES (\x27" $3 "\x27, \x27" $4 "\x27, \x27" $6 "\x27, \x27" $8 "\x27, \x27" a_conn[2] "\x27, \x27" a_conn[4] "\x27, 0);\nUPDATE threat_log SET count = count + 1 WHERE threat_id = \x27" $3 "\x27 AND threat_src_ip = \x27" a_conn[2] "\x27 AND threat_dst_ip = \x27" a_conn[4] "\x27 AND date = \x27" $1  "\x27;"}'
 
   # log out the processed nodes
   threat_count=$(grep -c "\[\*\*\]" $suricata_logfile)

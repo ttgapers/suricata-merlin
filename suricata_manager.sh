@@ -360,6 +360,7 @@ case "$1" in
 		rm -rf /opt/var/log/suricata/ 2>/dev/null
 		rm -rf /opt/etc/suricata/ 2>/dev/null
 		rm -rf /jffs/addons/suricata/ 2>/dev/null
+		rm /opt/var/run/suricata.pid 2>/dev/null
 		;;
 	syntax|check)
 		# Perform a test compile of the config
