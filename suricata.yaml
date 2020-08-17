@@ -41,7 +41,7 @@ host-mode: auto
 
 # Linux high speed capture support
 af-packet:
-  - interface: eth0
+  - interface: ## set your wan interface
 #    threads: 1
 #    defrag: no
 #    cluster-type: cluster_flow
@@ -53,7 +53,7 @@ af-packet:
 #    tpacket-v2: yes
 #    tpacket-v3: no
 #    ring-size: 3072
-  - interface: br0
+  - interface: ## set your lan interface
 #    threads: 1
 #    cluster-id: 98
 #    defrag: no

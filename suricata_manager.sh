@@ -7,7 +7,7 @@
 # shellcheck disable=SC2086,SC2068,SC2039,SC2242,SC2027,SC2155,SC2046
 # shellcheck disable=SC2034  # Unused variables left for readability
 
-VER="v1.1"
+VER="v1.2"
 GITHUB="https://raw.githubusercontent.com/juched78/suricata-merlin/master/"
 #======================================================================================================= © 2020 Martineau, v1.03
 #  Install 'suricata - Real-time Intrusion Detection System (IDS), Intrusion Prevention System (IPS) package from Entware on Asuswrt-Merlin firmware.
@@ -153,6 +153,15 @@ Get_WAN_IF_Name () {
 
 }
 
+# shellcheck disable=SC2034
+Get_LAN_IF_Name () {
+
+	local IF_NAME=$(nvram get lan_ifname)				# DHCP/Static ?
+
+	echo $IF_NAME
+
+}
+
 _quote() {
   echo $1 | sed 's/[]\/()$*.^|[]/\\&/g'
 }
@@ -254,17 +263,18 @@ case "$1" in
 		mkdir /opt/var/lib/suricata/ 2>/dev/null
 		mkdir /jffs/addons/suricata/ 2>/dev/null
 
+		echo "Fetching suricata.yaml..."
 		FN="/opt/etc/suricata/suricata.yaml"
-
 		curl --progress-bar -o $FN $(echo $GITHUB"suricata.yaml")
 
 		# Customise 'suricata.yaml'
-
+		echo "Updating suricata.yaml..."
 		#    HOME_NET: "[192.168.0.0/24]"
 		LANIPADDR=$(nvram get lan_ipaddr)
 		LAN_SUBNET=${LANIPADDR%.*}
 		LAN_CIDR=$(_quote "$(echo -e "[$LAN_SUBNET.0/24]")")
 		sed -i "/HOME_NET:/ s/[^ ]*[^ ]/\\\"$LAN_CIDR\\\"/2" $FN
+		echo "LAN IP is set to $LAN_CIDR"
 
 		#    DNS_SERVERS: "[192.168.1.1]"
 		# shellcheck disable=2005
@@ -273,11 +283,16 @@ case "$1" in
 		#DNS_IP="127.0.0.1"
 		DNS=$(_quote "$(echo -e "[$DNS_IP]")")
 		sed -i "/DNS_SERVERS:/ s/[^ ]*[^ ]/\\\"$DNS\\\"/2" $FN
+		echo "DSN Server is set to $DNS"
 
 		#    af-packet:
 		#     - interface: ## set your wan interface
 		WAN_IF=$(Get_WAN_IF_Name)
 		sed -i "s/interface:.*set your wan interface/interface: $WAN_IF/" $FN
+		echo "WAN IF is set to $WAN_IF"
+		LAN_IF=$(Get_LAN_IF_Name)
+		sed -i "s/interface:.*set your lan interface/interface: $LAN_IF/" $FN
+		echo "LAN IF is set to $LAN_IF"
 
 		# Download services file for init.d
 		curl --progress-bar -o /opt/etc/init.d/S82suricata $(echo $GITHUB"S82suricata")
