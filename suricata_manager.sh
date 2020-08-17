@@ -250,6 +250,7 @@ case "$1" in
 		opkg update
 		opkg install suricata
 
+		mkdir /opt/var/lib/ 2>/dev/null
 		mkdir /opt/var/lib/suricata/ 2>/dev/null
 		mkdir /jffs/addons/suricata/ 2>/dev/null
 
