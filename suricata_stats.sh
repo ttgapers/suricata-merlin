@@ -81,7 +81,7 @@ WriteSuricataSqlLog_ToFile(){
 		echo ".mode csv"
 		echo ".output $5"
 	} > "$6"
-	echo "SELECT $2, SUM($3) FROM $1 $7 GROUP BY $2 ORDER BY SUM($3) DESC LIMIT $4;" >> "$6"
+	echo "SELECT $2 FROM $1 $7 GROUP BY $2 ORDER BY $3 LIMIT $4;" >> "$6"
 }
 
 #$1 csv file $2 JS file $3 JS func name $4 html tag
@@ -139,14 +139,14 @@ Generate_SuricataStats () {
 	echo "Outputting Threats ..."
 	[ -f $statsThreatsHitsFileJS ] && rm -f $statsThreatsHitsFileJS
 	whereString=""
-	WriteSuricataSqlLog_ToFile "threat_log" "date, threat_id, threat_desc, threat_class, threat_priority, threat_src_ip, threat_dst_ip" "count" "250" "/tmp/suricata-threats.csv" "/tmp/suricata-threats.sql" "$whereString"
+	WriteSuricataSqlLog_ToFile "threat_log" "date, threat_id, threat_desc, threat_class, threat_priority, threat_src_ip, threat_dst_ip, count" "date DESC, count DESC" "250" "/tmp/suricata-threats.csv" "/tmp/suricata-threats.sql" "$whereString"
 	"$SQLITE3_PATH" "$dbLogs" < /tmp/suricata-threats.sql
 	dos2unix "/tmp/suricata-threats.csv"
 	WriteSuricataCSV_ToJS_Table "/tmp/suricata-threats.csv" $statsThreatsHitsFileJS "LoadThreatsTable" "DatadivTableThreats"
 
 	#cleanup temp files
-#	rm -f "/tmp/suricata-"*".csv"
-#	rm -f "/tmp/suricata-"*".sql"
+	rm -f "/tmp/suricata-"*".csv"
+	rm -f "/tmp/suricata-"*".sql"
 	[ -f $statsTitleFile ] && rm -f $statsTitleFile
 }
 
