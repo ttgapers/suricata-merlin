@@ -358,17 +358,17 @@ rule-files:
    - emerging-mobile_malware.rules
    - emerging-worm.rules
    - emerging-dos.rules
-   - emerging-dns.rules
+#   - emerging-dns.rules
    - ciarmy.rules
    - emerging-misc.rules
    - emerging-scan.rules
-   - emerging-icmp_info.rules 
+#   - emerging-icmp_info.rules 
    - emerging-icmp.rules
-   - emerging-user_agents.rules
-   - emerging-policy.rules
+#   - emerging-user_agents.rules
+#   - emerging-policy.rules
    - emerging-attack_response.rules 
    - emerging-ftp.rules
-   - emerging-games.rules
+#   - emerging-games.rules
 
 classification-file: /opt/etc/suricata/classification.config
 reference-config-file: /opt/etc/suricata/reference.config
