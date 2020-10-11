@@ -2,12 +2,13 @@
 # suricata-manager - Suricata port for Merlin firmware supported routers
 # Site: https://github.com/ttgapers/suricata-merlin
 # Thread: hhttps://www.snbforums.com/threads/suricata-ids-ips-on-asuswrt-merlin.63280/
-# Credits: rgnldo, Martineau, ttgapers, Adamm
+# Credits: juched, rgnldo, Martineau, ttgapers, Adamm
 
 # shellcheck disable=SC2086,SC2068,SC2039,SC2242,SC2027,SC2155,SC2046
 # shellcheck disable=SC2034  # Unused variables left for readability
 
-VER="v1.04"
+VER="v1.2"
+GITHUB="https://raw.githubusercontent.com/juched78/suricata-merlin/master/"
 #======================================================================================================= © 2020 Martineau, v1.03
 #  Install 'suricata - Real-time Intrusion Detection System (IDS), Intrusion Prevention System (IPS) package from Entware on Asuswrt-Merlin firmware.
 #
@@ -34,23 +35,7 @@ VER="v1.04"
 #                                       ==> /opt/var/log/suricata/fast.log <==
 #
 #                                       ==> /opt/var/log/suricata/stats.log <==
-#
-#                                       ==> /opt/var/log/suricata/eve-2020-05-09-15:38.json <==
 
-
-
-#
-# filename: fast.log
-# filename: unified2.alert
-# filename: http.log
-# filename: log.pcap
-# filename: tls.log
-# filename: stats.log
-# filename: drop.log
-# filename: files-json.log
-# filename: dns.log
-# filename: eve.json
-# filename: /opt/var/log/suricata/suricata.log
 
 # Print between line beginning with'#==' to first blank line inclusive
 ShowHelp() {
@@ -167,21 +152,16 @@ Get_WAN_IF_Name () {
 	echo $IF_NAME
 
 }
-Script_alias() {
 
-        if [ "$1" == "create" ];then
-            # Create alias 'suricata_manager' for '/jffs/addons/unbound/suricata_manager.sh'  # v1.22
-            rm -rf "/opt/bin/suricata_manager" 2>/dev/null                                   # v2.01
-            if [ -d "/opt/bin" ] && [ ! -L "/opt/bin/suricata_manager" ]; then
-                echo -e $cBGRE"Creating 'suricata_manager' alias" 2>&1
-                ln -s /jffs/addons/suricata/suricata_manager.sh /opt/bin/suricata_manager    # v2.00 v1.04
-            fi
-        else
-            # Remove Script alias - why?
-            echo -e $cBCYA"Removing 'suricata_manager' alias" 2>&1
-            rm -rf "/opt/bin/suricata_manager" 2>/dev/null
-        fi
+# shellcheck disable=SC2034
+Get_LAN_IF_Name () {
+
+	local IF_NAME=$(nvram get lan_ifname)				# DHCP/Static ?
+
+	echo $IF_NAME
+
 }
+
 _quote() {
   echo $1 | sed 's/[]\/()$*.^|[]/\\&/g'
 }
@@ -207,17 +187,9 @@ Check_GUI_NVRAM() {
 			[ "$(nvram get qos_enable)" == "1" ] && { echo -e $cBRED"\a\t[✖] ***ERROR QoS ENABLED $cRESET \t\t\t\t\tsee $HTTP_TYPE://$(nvram get lan_ipaddr):$HTTP_PORT/QoS_EZQoS.asp ->QoS - QoS to configuration"$cRESET 2>&1; ERROR_CNT=$((ERROR_CNT + 1)); } || echo -e $cBGRE"\t[✔] QoS DISABLED" 2>&1
 
 			# Check Skynet
-			[ -f /jffs/scripts/firewall ] && echo -e $cBRED"\a\t[✖] ***Warning Skynet installed" || echo -e $cBGRE"\t[✔] Skynet not Installed" 2>&1
+			#[ -f /jffs/scripts/firewall ] && echo -e $cBRED"\a\t[✖] ***Warning Skynet installed" || echo -e $cBGRE"\t[✔] Skynet not Installed" 2>&1
 
 			echo -e $cBCYA"\n\tOptions:${TXT}$DESC\n" 2>&1
-
-		fi
-
-
-
-		if [ -f /opt/etc/suricata/suricata.yaml ];then
-
-			:
 
 		fi
 
@@ -237,8 +209,6 @@ Check_GUI_NVRAM() {
 Main() { true; } # Syntax that is Atom Shellchecker compatible!
 
 ANSIColours
-
-[ ! -L "/opt/bin/suricata_manager" ] && Script_alias "create"
 
 # shellcheck disable=SC2005 # Useless echo
 FIRMWARE=$(echo $(nvram get buildno) | awk 'BEGIN { FS = "." } {printf("%03d%02d",$1,$2)}')
@@ -289,72 +259,79 @@ case "$1" in
 		opkg update
 		opkg install suricata
 
+		mkdir /opt/var/lib/ 2>/dev/null
 		mkdir /opt/var/lib/suricata/ 2>/dev/null
 		mkdir /jffs/addons/suricata/ 2>/dev/null
 
+		echo "Fetching suricata.yaml..."
 		FN="/opt/etc/suricata/suricata.yaml"
-
-		curl --progress-bar -o $FN https://raw.githubusercontent.com/rgnldo/knot-resolver-suricata/master/suricata.yaml
+		curl --progress-bar -o $FN $(echo $GITHUB"suricata.yaml")
 
 		# Customise 'suricata.yaml'
-
+		echo "Updating suricata.yaml..."
 		#    HOME_NET: "[192.168.0.0/24]"
 		LANIPADDR=$(nvram get lan_ipaddr)
 		LAN_SUBNET=${LANIPADDR%.*}
 		LAN_CIDR=$(_quote "$(echo -e "[$LAN_SUBNET.0/24]")")
 		sed -i "/HOME_NET:/ s/[^ ]*[^ ]/\\\"$LAN_CIDR\\\"/2" $FN
+		echo "LAN IP is set to $LAN_CIDR"
 
 		#    DNS_SERVERS: "[192.168.1.1]"
 		# shellcheck disable=2005
 		DNS_IP=$(echo "$(nvram get wan0_dns)" | awk '{print $1}')		# Beware wan0_dns will usually be two IP's
-		#[ -n "$(pidof unbound)" ] && DNS=$(nvram get lan_ipadd_rt)
-		DNS_IP="127.0.0.1"
+		[ -n "$(pidof unbound)" ] && DNS_IP=$(nvram get lan_ipaddr_rt)
+		#DNS_IP="127.0.0.1"
 		DNS=$(_quote "$(echo -e "[$DNS_IP]")")
 		sed -i "/DNS_SERVERS:/ s/[^ ]*[^ ]/\\\"$DNS\\\"/2" $FN
+		echo "DSN Server is set to $DNS"
 
 		#    af-packet:
 		#     - interface: ## set your wan interface
 		WAN_IF=$(Get_WAN_IF_Name)
 		sed -i "s/interface:.*set your wan interface/interface: $WAN_IF/" $FN
+		echo "WAN IF is set to $WAN_IF"
+		LAN_IF=$(Get_LAN_IF_Name)
+		sed -i "s/interface:.*set your lan interface/interface: $LAN_IF/" $FN
+		echo "LAN IF is set to $LAN_IF"
 
-		# Download
-		curl --progress-bar -o /opt/etc/init.d/S82suricata https://raw.githubusercontent.com/rgnldo/knot-resolver-suricata/master/S82suricata
+		# Download services file for init.d
+		curl --progress-bar -o /opt/etc/init.d/S82suricata $(echo $GITHUB"S82suricata")
 		chmod +x /opt/etc/init.d/S82suricata
 
+		# Download Rules
 		mkdir /opt/var/lib/suricata/rules 2>/dev/null
 		curl --progress-bar -o /opt/etc/suricata/classification.config https://rules.emergingthreats.net/open/suricata-4.0/rules/classification.config
-
 		curl --progress-bar -SL https://rules.emergingthreats.net/open/suricata-4.0/emerging.rules.tar.gz | tar -zxC /opt/var/lib/suricata/
-		/opt/etc/init.d/S82suricata restart
-
-
-		FN="/opt/var/lib/suricata/rules/upd_rules_suricata.sh"
-		cat > $FN << EOF
-#! /bin/sh
-logger "Updating:suricata rules..."
-
-/opt/etc/init.d/S82suricata stop
-
-curl -o /opt/etc/suricata/classification.config https://rules.emergingthreats.net/open/suricata-4.0/rules/classification.config
-curl -SL https://rules.emergingthreats.net/open/suricata-4.0/emerging.rules.tar.gz | tar -zxC /opt/var/lib/suricata/
-
-logger "Updating:suricata starting..."
-sleep 10s
-/opt/etc/init.d/S82suricata start
-EOF
-		chmod +x $FN >/dev/null
-
+		
+		# Download Update Script
+		curl --progress-bar -o /jffs/addons/suricata/suricata_update.sh $(echo $GITHUB"suricata_update.sh")
+		chmod +x /jffs/addons/suricata/suricata_update.sh
+		
 		# Create 03:00 Daily cron job to update the rules
 		if [ ! -f /jffs/scripts/services-start ];then
 			echo -e "#!/bin/sh\n" > /jffs/scripts/services-start
 			chmod +x /jffs/scripts/services-start
 		fi
 		# shellcheck disable=2143
-		[ -z "$(grep "suricata" /jffs/scripts/services-start)" ] && echo -e "cru a suricata_update \"0 3 * * * $FN\"" >> /jffs/scripts/services-start
-		cru a suricata_updte "0 3 * * * $FN"
+		[ -z "$(grep "Suricata_Update.sh" /jffs/scripts/services-start)" ] && echo -e "cru a Suricata_Update.sh \"0 3 * * * /jffs/addons/suricata/suricata_update.sh\"" >> /jffs/scripts/services-start
+		cru a Suricata_Update.sh "0 3 * * * /jffs/addons/suricata/suricata_update.sh"		
+		
+		# Download stats processing
+		curl --progress-bar -o /jffs/addons/suricata/suricata_log.sh $(echo $GITHUB"suricata_log.sh")
+		chmod +x /jffs/addons/suricata/suricata_log.sh
+		curl --progress-bar -o /jffs/addons/suricata/suricata_stats.sh $(echo $GITHUB"suricata_stats.sh")
+		chmod +x /jffs/addons/suricata/suricata_stats.sh
+		curl --progress-bar -o /jffs/addons/suricata/suricatastats_www.asp $(echo $GITHUB"suricatastats_www.asp")
+		
+		# install stats
+		/jffs/addons/suricata/suricata_stats.sh install
+	
 
 		# Perform a test compile of the config
 		suricata -T
+
+		#start services
+		/opt/etc/init.d/S82suricata restart
 
 		#cat /opt/var/log/suricata/suricata.log
 		;;
@@ -367,7 +344,6 @@ EOF
 	logs)
 	    echo -e $cBMAG"\tLog watch\t\t${cBGRE}Press CTRL-C to stop\n"$cRESET
 		# shellcheck disable=2012
-	    EVELOG=$(ls -lah /opt/var/log/suricata/eve-* | tail -n 1 | awk '{print $NF}')
 		tail -f /opt/var/log/suricata/fast.log /opt/var/log/suricata/stats.log $EVELOG # recommended
 		;;
 	config|configx)
@@ -389,17 +365,17 @@ EOF
 		;;
 	uninstall|remove)
 		[ -f /opt/etc/init.d/S82suricata ] && /opt/etc/init.d/S82suricata stop
+		/jffs/addons/suricata/suricata_stats.sh uninstall
 		# [ -n "$(opkg list-installed | grep suricata)" ] && opkg --force-remove --force-depends remove suricata
 		opkg --autoremove remove suricata
-		cru d suricata_updte
-		cru d suricata_update
-		sed -i '/suricata/d' /jffs/scripts/services-start
-		Script_alias
+		cru d Suricata_Update.sh
+		sed -i '/Suricata_Manager.sh/d' /jffs/scripts/services-start
 		rm -rf /opt/var/lib/suricata 2>/dev/null
 		rm /opt/etc/init.d/S82suricata 2>/dev/null
 		rm -rf /opt/var/log/suricata/ 2>/dev/null
 		rm -rf /opt/etc/suricata/ 2>/dev/null
 		rm -rf /jffs/addons/suricata/ 2>/dev/null
+		rm /opt/var/run/suricata.pid 2>/dev/null
 		;;
 	syntax|check)
 		# Perform a test compile of the config

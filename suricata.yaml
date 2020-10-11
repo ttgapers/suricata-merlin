@@ -1,0 +1,464 @@
+%YAML 1.1
+---
+
+# Holds variables that would be used by the engine.
+vars:
+
+  # Holds the address group vars that would be passed in a Signature.
+  address-groups:
+    HOME_NET: "[HOME_NET/16]"
+    EXTERNAL_NET: "any"
+    DNS_SERVERS: "[DNS_IP]"
+    SMTP_SERVERS: "$HOME_NET"
+    HTTP_SERVERS: "$HOME_NET"
+    SQL_SERVERS: "$HOME_NET"
+    TELNET_SERVERS: "$HOME_NET"
+    DNP3_SERVER: "$HOME_NET"
+    DNP3_CLIENT: "$HOME_NET"
+    MODBUS_SERVER: "$HOME_NET"
+    MODBUS_CLIENT: "$HOME_NET"
+    ENIP_SERVER: "$HOME_NET"
+    ENIP_CLIENT: "$HOME_NET"
+    FTP_SERVERS: "$HOME_NET"
+    SSH_SERVERS: "$HOME_NET"
+    
+ # Holds the port group vars that would be passed in a Signature.
+  port-groups:
+    FTP_PORTS: "21"
+    HTTP_PORTS: "80"
+    ORACLE_PORTS: "1521"
+    SSH_PORTS: "29100"
+    SHELLCODE_PORTS: "!80"
+    DNP3_PORTS: "20000"
+    FILE_DATA_PORTS: "$HTTP_PORTS,110,143"   
+  
+# Runmode the engine should use.
+runmode: workers
+
+# If set to auto, the variable is internally switched to 'router' in IPS
+# mode and 'sniffer-only' in IDS mode.
+host-mode: auto
+
+# Linux high speed capture support
+af-packet:
+  - interface: ## set your wan interface
+#    threads: 1
+#    defrag: no
+#    cluster-type: cluster_flow
+#    cluster-id: 99
+#    copy-mode: ips
+#    copy-iface: br0
+#    buffer-size: 3072 
+#    use-mmap: yes
+#    tpacket-v2: yes
+#    tpacket-v3: no
+#    ring-size: 3072
+  - interface: ## set your lan interface
+#    threads: 1
+#    cluster-id: 98
+#    defrag: no
+#    cluster-type: cluster_flow
+#    copy-mode: ips
+#    copy-iface: eth0
+#    buffer-size: 3072
+#    use-mmap: yes
+#    tpacket-v2: yes
+#    tpacket-v3: no
+#    ring-size: 3072
+#  - interface: wl0.2
+
+# IPS Mode Configuration
+# PCAP
+pcap:
+  - interface: eth0
+    checksum-checks: auto
+    promisc: yes
+  - interface: br0
+    checksum-checks: auto
+    promisc: yes
+
+pid-file: /opt/var/run/suricata.pid
+
+legacy:
+  uricontent: enabled
+
+max-pending-packets: 1024
+
+# The default logging directory.
+default-log-dir: /opt/var/log/suricata
+
+stats:
+  enabled: no
+  # The interval field (in seconds) controls at what interval
+  # the loggers are invoked.
+  interval: 8
+  decoder-events-prefix: "decoder.event"
+  
+# Configure the type of alert (and other) logging.
+outputs:
+
+# a line based alerts log similar to Snort's fast.log
+  - fast:
+      enabled: yes 
+      filename: fast.log
+      append: yes
+      filetype: regular
+
+  # alert output for use with Barnyard2
+  - unified2-alert:
+      enabled: no
+      filename: unified2.alert
+      limit: 32mb
+      sensor-id: 0
+      xff:
+        enabled: no
+
+  - http-log:
+      enabled: no
+      filename: http.log
+      append: yes
+      extended: yes
+      filetype: regular
+
+  - pcap-log:
+      enabled: no
+      filename: log.pcap
+      limit: 32mb
+      max-files: 1000
+      mode: normal
+
+  - tls-log:
+      enabled: no
+      filename: tls.log
+      extended: yes
+
+  - tls-store:
+      enabled: no
+      certs-log-dir: certs
+
+  - stats:
+      enabled: yes 
+      filename: stats.log
+      interval: 10
+      append: no
+
+  - syslog:
+      enabled: no
+      identity: suricata
+      facility: local1
+      level: notice
+
+  - drop:
+      enabled: no
+      filename: drop.log
+      append: yes
+      filetype: regular
+
+  - file-store:
+      enabled: no
+      log-dir: files
+      force-magic: no
+
+  - file-log:
+      enabled: no
+      filename: files-json.log
+      append: yes
+      filetype: regular
+      force-magic: no
+      #force-hash: [md5]
+
+  - dns-log:
+      enabled: no
+      filename: dns.log
+      append: yes
+      filetype: regular
+
+  - eve-log:
+      enabled: no
+      filetype: regular
+      filename: eve-%Y-%m-%d-%H:%M.json
+
+      types:
+        - alert:
+          tagged-packets: yes
+          app-layer: true
+          flow: true
+          rule: true
+          metadata: true
+          raw: false
+
+        - drop:
+          alerts: yes
+          flows: all
+
+        # - http
+        # - dns
+        # - tls
+
+# Magic file. The extension .mgc is added to the value here.
+magic-file: /opt/share/misc/magic
+
+## Netfilter configuration
+##
+
+nflog:
+    # netlink multicast group
+    # (the same as the iptables --nflog-group param)
+    # Group 0 is used by the kernel, so you can't use it
+  - group: 2
+    # netlink buffer size
+    buffer-size: 18432
+    # put default value here
+  - group: default
+    # set number of packet to queue inside kernel
+    qthreshold: 1
+    # set the delay before flushing packet in the queue inside kernel
+    qtimeout: 100
+    # netlink max buffer size
+    max-size: 20000
+
+# Specify a threshold config file
+#threshold-file: /usr/local/etc/suricata/suricata_17402_pppoe1/threshold.config
+
+detect-engine:
+  - profile: medium
+  - custom-values:
+      toclient-src-groups: 2
+      toclient-dst-groups: 2
+      toclient-sp-groups: 2
+      toclient-dp-groups: 3
+      toserver-src-groups: 2
+      toserver-dst-groups: 4
+      toserver-sp-groups: 2
+      toserver-dp-groups: 25
+  - sgh-mpm-context: auto
+  - inspection-recursion-limit: 3000
+
+
+# Suricata is multi-threaded. Here the threading can be influenced.
+threading:
+  set-cpu-affinity: no
+  detect-thread-ratio: 1.5
+
+# Defrag settings:
+defrag:
+  memcap: 32mb
+  hash-size: 65536
+  trackers: 65535
+  max-frags: 65535
+  prealloc: yes
+  timeout: 60
+
+# Flow settings:
+flow:
+  memcap: 32mb
+  hash-size: 65536
+  prealloc: 10000
+  emergency-recovery: 30
+  prune-flows: 5
+
+# This option controls the use of vlan ids in the flow (and defrag)
+# hashing.
+vlan:
+  use-for-tracking: true
+
+# Specific timeouts for flows.
+flow-timeouts:
+
+  default:
+    new: 30
+    established: 300
+    closed: 0
+    emergency-new: 10
+    emergency-established: 100
+    emergency-closed: 0
+  tcp:
+    new: 60
+    established: 3600
+    closed: 120
+    emergency-new: 10
+    emergency-established: 300
+    emergency-closed: 20
+  udp:
+    new: 30
+    established: 300
+    emergency-new: 10
+    emergency-established: 100
+  icmp:
+    new: 30
+    established: 300
+    emergency-new: 10
+    emergency-established: 100
+
+stream:
+  memcap: 32mb
+  checksum-validation: yes      # reject wrong csums
+  inline: auto                  # auto will use inline mode in IPS mode, yes or no set it statically
+  reassembly:
+    memcap: 64mb
+    depth: 1mb                  # reassemble 1mb into a stream
+    toserver-chunk-size: 2560
+    toclient-chunk-size: 2560
+    randomize-chunk-size: yes
+    #randomize-chunk-range: 10
+    #raw: yes
+    #segment-prealloc: 2048
+    #check-overlap-different-data: true
+
+# Host table is used by tagging and per host thresholding subsystems.
+host:
+  hash-size: 4096
+  prealloc: 1000
+  memcap: 16554432
+
+# Host specific policies for defragmentation and TCP stream reassembly.
+host-os-policy:
+  # Make the default policy windows.
+  windows: [0.0.0.0/0]
+  bsd: []
+  bsd-right: []
+  old-linux: []
+  linux: []
+  old-solaris: []
+  solaris: []
+  hpux10: []
+  hpux11: []
+  irix: []
+  macos: []
+  vista: []
+  windows2k3: []
+
+# Logging configuration.  This is not about logging IDS alerts, but
+# IDS output about what its doing, errors, etc.
+logging:
+
+  # This value is overriden by the SC_LOG_LEVEL env var.
+  default-log-level: info
+
+  # Define your logging outputs.
+  outputs:
+  - console:
+      enabled: no
+  - file:
+      enabled: no
+      filename: /opt/var/log/suricata/suricata.log
+  - syslog:
+      enabled: no 
+      facility: off
+      
+default-rule-path: /opt/var/lib/suricata/rules
+
+rule-files:
+   - botcc.rules
+   - botcc.portgrouped.rules
+   - compromised.rules
+   - drop.rules
+   - dshield.rules
+   - emerging-malware.rules
+   - emerging-mobile_malware.rules
+   - emerging-worm.rules
+   - emerging-dos.rules
+#   - emerging-dns.rules
+   - ciarmy.rules
+   - emerging-misc.rules
+   - emerging-scan.rules
+#   - emerging-icmp_info.rules 
+   - emerging-icmp.rules
+#   - emerging-user_agents.rules
+#   - emerging-policy.rules
+   - emerging-attack_response.rules 
+   - emerging-ftp.rules
+#   - emerging-games.rules
+
+classification-file: /opt/etc/suricata/classification.config
+reference-config-file: /opt/etc/suricata/reference.config
+threshold-file: /opt/etc/suricata/threshold.config
+
+# action-order:
+#   - pass
+#   - drop
+#   - reject
+#   - alert
+
+# Limit for the maximum number of asn1 frames to decode (default 256)
+asn1-max-frames: 256
+
+engine-analysis:
+  rules-fast-pattern: yes
+  rules: yes
+
+#recursion and match limits for PCRE where supported
+pcre:
+  match-limit: 3500
+  match-limit-recursion: 1500
+
+# Holds details on the app-layer. The protocols section details each protocol.
+app-layer:
+  protocols:
+    krb5:
+      enabled: no # Requires rust
+    ikev2:
+      enabled: yes
+    tls:
+      enabled: yes
+      detection-ports:
+      dp: "[443,444,465,853,993,995]"
+
+    dcerpc:
+      enabled: yes
+    ftp:
+      enabled: yes
+    ssh:
+      enabled: yes
+    smtp:
+      enabled: yes
+    imap:
+      enabled: detection-only
+    msn:
+      enabled: detection-only
+    smb:
+      enabled: yes
+      detection-ports:
+          dp: 139, 445
+    dns:
+      global-memcap: 16777216
+      state-memcap: 524288
+      request-flood: 500
+
+      tcp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+      udp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+      http:
+        enabled: yes
+        memcap: 16108864
+
+###########################################################################
+# Configure libhtp.
+libhtp:
+    default-config:
+      personality: IDS
+      request-body-limit: 2mb
+      response-body-limit: 2mb
+      request-body-minimal-inspect-size: 32kb
+      request-body-inspect-window: 4kb
+      response-body-minimal-inspect-size: 32kb
+      response-body-inspect-window: 4kb
+      http-body-inline: auto
+      double-decode-path: no
+      double-decode-query: no
+    ntp:
+      enabled: yes
+    dhcp:
+      enabled: yes
+    sip:
+      enabled: yes
+
+coredump:
+    max-dump: unlimited
+
+# Suricata user pass through configuration
